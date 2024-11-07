@@ -1,7 +1,21 @@
-import path from 'path';
 import { loadProductData } from '../src/utils/loadProductData';
 
 describe('loadProductData() 함수 테스트', () => {
+  test('loadProductData가 객체 배열을 반환하는지 확인', async () => {
+    const products = await loadProductData();
+
+    // 배열인지 확인
+    expect(Array.isArray(products)).toBe(true);
+
+    // 배열 내부 요소가 객체인지 확인
+    expect(products.every((item) => typeof item === 'object')).toBe(true);
+
+    // 예시로 첫 번째 객체의 구조를 확인 (이름, 가격, 수량이 제대로 파싱되었는지)
+    expect(products[0]).toHaveProperty('name');
+    expect(products[0]).toHaveProperty('price');
+    expect(products[0]).toHaveProperty('quantity');
+    expect(products[0]).toHaveProperty('promotion');
+  });
   test('상품 목록이 정상적으로 불러와지는지 확인', async () => {
     const products = await loadProductData();
 

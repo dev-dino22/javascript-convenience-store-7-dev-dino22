@@ -1,17 +1,14 @@
-import fs from 'fs/promises';
+import fs from 'fs';
 
 const PRODUCTS_FILE_PATH = './public/products.md';
 
-const readFileContent = async (filePath) => {
-  const data = await fs.readFile(filePath, 'utf-8');
+const readFileContent = (filePath) => {
+  const data = fs.readFileSync(filePath, 'utf-8');
   return data.trim().split('\n').slice(1);
 };
 
 const parsePromotion = (promotion) => {
-  if (promotion === 'null') {
-    return null;
-  }
-  return promotion;
+  return promotion === 'null' ? null : promotion;
 };
 
 const parseProductLine = (line) => {
@@ -26,7 +23,7 @@ const parseProductLine = (line) => {
   };
 };
 
-export const loadProductData = async () => {
-  const lines = await readFileContent(PRODUCTS_FILE_PATH);
+export const loadProductData = () => {
+  const lines = readFileContent(PRODUCTS_FILE_PATH);
   return lines.map(parseProductLine);
 };
