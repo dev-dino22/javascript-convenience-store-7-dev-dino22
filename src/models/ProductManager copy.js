@@ -33,14 +33,12 @@ class ProductManager {
     );
     const availablePromotionalStock = promotionalStock?.quantity || 0;
 
-    // 프로모션 적용 여부 확인 후 조정된 수량을 가져옴
-    const adjustedQuantity = promotionalStock
-      ? this.#promotionManager.applyPromotion(
-          promotionalStock.promotion, // 프로모션 이름 전달
-          quantity,
-          availablePromotionalStock,
-        )
-      : quantity; // 프로모션이 없는 경우 기본 수량 사용
+    // 프로모션에 따라 조정된 수량을 가져옴
+    const adjustedQuantity = this.#promotionManager.applyPromotion(
+      name,
+      quantity,
+      availablePromotionalStock,
+    );
 
     let remainingQuantity = adjustedQuantity;
 

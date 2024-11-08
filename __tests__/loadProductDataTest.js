@@ -2,7 +2,7 @@ import { loadProductData } from '../src/utils/loadProductData';
 
 describe('loadProductData() 함수 테스트', () => {
   test('loadProductData가 객체 배열을 반환하는지 확인', async () => {
-    const products = await loadProductData();
+    const products = loadProductData();
 
     // 배열인지 확인
     expect(Array.isArray(products)).toBe(true);
@@ -17,7 +17,7 @@ describe('loadProductData() 함수 테스트', () => {
     expect(products[0]).toHaveProperty('promotion');
   });
   test('상품 목록이 정상적으로 불러와지는지 확인', async () => {
-    const products = await loadProductData();
+    const products = loadProductData();
 
     expect(products).toEqual([
       { name: '콜라', price: 1000, quantity: 10, promotion: '탄산2+1' },

@@ -8,7 +8,10 @@ const readFileContent = (filePath) => {
 };
 
 const parsePromotion = (promotion) => {
-  return promotion === 'null' ? null : promotion;
+  if (promotion === 'null') {
+    return null;
+  }
+  return promotion;
 };
 
 const parseProductLine = (line) => {
