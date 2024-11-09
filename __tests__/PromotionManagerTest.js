@@ -29,4 +29,38 @@ describe('Promotion 기능 단위 테스트', () => {
 
     expect(result).toBe(6);
   });
+
+  test('calculateBonus() 기능테스트 - 보너스 상품 개수 반환 확인', () => {
+    const quantity = 2;
+    const buy = 2;
+    const get = 1;
+    const availablePromotionalStock = 10;
+
+    const calculateBonusResult = promotionManager.calculateBonus(
+      quantity,
+      buy,
+      get,
+      availablePromotionalStock,
+    );
+
+    const result = calculateBonusResult - quantity;
+
+    expect(result).toBe(1);
+  });
+
+  test('calculateDiscountAmount() 기능테스트 - 할인 금액 계산', () => {
+    const promotionName = '반짝할인';
+    const quantity = 2;
+    const price = 1500;
+    const availablePromotionalStock = 5;
+
+    const result = promotionManager.calculateDiscountAmount(
+      promotionName,
+      quantity,
+      price,
+      availablePromotionalStock,
+    );
+
+    expect(result).toBe(3000);
+  });
 });

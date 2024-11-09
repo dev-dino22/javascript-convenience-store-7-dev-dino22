@@ -34,7 +34,7 @@
 ### PromotionManager (models/)
 
 - ✅ N+1 프로모션(예: 1+1, 2+1) 혜택 적용
-- 프로모션에 따른 할인 금액 계산
+- ✅ 프로모션에 따른 할인 금액 계산
 
 ### MembershipManager (models/)
 
