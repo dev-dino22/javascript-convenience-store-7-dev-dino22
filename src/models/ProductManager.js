@@ -62,6 +62,31 @@ class ProductManager {
       regularStock.quantity -= remainingQuantity;
     }
   }
+  // 상품 정보를 문자열로 가공하여 반환
+  formatProductsInfo() {
+    const productInfoLines = this.#products.map((product) => {
+      const quantityText = this.formatQuantity(product.quantity);
+      const promotionText = this.formatPromotion(product.promotion);
+      return `- ${product.name} ${product.price}원 ${quantityText} ${promotionText}`.trim();
+    });
+
+    const formattedInfo = productInfoLines.join('\n');
+    return formattedInfo;
+  }
+
+  formatQuantity(quantity) {
+    if (quantity > 0) {
+      return `${quantity}개`;
+    }
+    return '재고 없음';
+  }
+
+  formatPromotion(promotion) {
+    if (promotion) {
+      return promotion;
+    }
+    return '';
+  }
 }
 
 export default ProductManager;
