@@ -1,3 +1,4 @@
+// MainController.js
 import InputView from '../views/InputView.js';
 import OutputView from '../views/OutputView.js';
 import ProductManager from '../models/ProductManager.js';
@@ -17,13 +18,18 @@ class MainController {
       await this.displayProducts();
 
       try {
-        // Step: 장바구니에 상품 추가
+        // 1. 장바구니에 상품 추가
         await this.addCart();
+
+        // 2. 멤버십 할인 적용 여부 확인 및 영수증 출력
         const isMembership = await InputView.readMembershipDiscount();
         const receiptData = this.cart.generateReceiptData(isMembership);
         OutputView.printReceipt(receiptData);
+
+        // 3. 영수증 출력 후 재고 차감
+        this.cart.deductAllItemsStock(this.productManager);
       } catch (error) {
-        OutputView.printError(error);
+        OutputView.printError(error.message);
         continue;
       }
 
@@ -38,17 +44,12 @@ class MainController {
   }
 
   async addCart() {
-    // Step 1: 상품명과 수량을 입력받기
     const itemsToBuy = await InputView.readItem();
     this.productManager.checkProductStock(itemsToBuy);
 
-    // Step 2: 장바구니 추가
     itemsToBuy.forEach(({ name, quantity }) => {
-      // 2.1 상품의 가격과 프로모션 재고를 ProductManager에서 조회
-      const { price, availablePromotionalStock, promotion } =
+      const { price, availablePromotionalStock } =
         this.productManager.returnProductDetails(name);
-
-      // 2.2 Cart에 상품 추가, 필요시 프로모션 적용
       this.cart.addItem(name, price, quantity, availablePromotionalStock);
     });
   }
