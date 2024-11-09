@@ -1,13 +1,16 @@
 import PromotionManager from './PromotionManager.js';
+import MembershipManager from './MembershipManager.js';
 
 class Cart {
   #items;
   #promotionManager;
+  #membershipManager;
   #totalDiscountAmount;
 
   constructor() {
     this.#items = [];
     this.#promotionManager = new PromotionManager();
+    this.#membershipManager = new MembershipManager();
     this.#totalDiscountAmount = 0;
   }
 
@@ -29,7 +32,23 @@ class Cart {
     this.#totalDiscountAmount += amount;
   }
 
-  calculateTotalAmountWithoutDiscounts() {
+  calculateFinalAmount(applyMembershipDiscount = false) {
+    let totalAmount = this.#calculateTotalAmountWithoutDiscounts();
+
+    // 프로모션 할인 적용
+    totalAmount -= this.#totalDiscountAmount;
+
+    // 멤버십 할인 적용
+    if (applyMembershipDiscount) {
+      const membershipDiscount =
+        this.#membershipManager.calculateMembershipDiscount(totalAmount);
+      totalAmount -= membershipDiscount;
+    }
+
+    return totalAmount;
+  }
+
+  #calculateTotalAmountWithoutDiscounts() {
     return this.#items.reduce(
       (total, item) => total + item.price * item.quantity,
       0,
