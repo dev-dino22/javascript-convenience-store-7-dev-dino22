@@ -16,40 +16,64 @@ const OutputView = {
     Console.print(error);
   },
   printReceipt(receiptData) {
-    const {
-      itemsDetails,
-      promotionsDetails,
-      totalAmountWithoutDiscounts,
-      totalDiscountAmount,
-      membershipDiscount,
-      finalAmount,
-    } = receiptData;
+    this.printHeader();
+    this.printItems(receiptData.itemsDetails);
+    this.printPromotions(receiptData.promotionsDetails);
+    this.printSummary(receiptData);
+  },
 
-    const itemsText = itemsDetails
-      .map((item) => `${item.name}\t\t${item.quantity}\t${item.total}`)
-      .join('\n');
+  printHeader() {
+    Console.print(MESSAGES.RECEIPT.TITLE);
+    Console.print(MESSAGES.RECEIPT.ITEM_HEADER);
+  },
 
-    const promotionsText =
-      promotionsDetails.length > 0
-        ? promotionsDetails
-            .map((item) => `${item.name}\t\t${item.quantity}`)
-            .join('\n')
-        : '없음';
+  printItems(itemsDetails) {
+    itemsDetails.forEach((item) => {
+      const itemText = MESSAGES.RECEIPT.ITEM_ROW.replace('{name}', item.name)
+        .replace('{quantity}', item.quantity)
+        .replace('{total}', item.total);
+      Console.print(itemText);
+    });
+  },
 
-    const receiptText = `
-==============W 편의점================
-상품명\t\t수량\t금액
-${itemsText}
-=============증정===============
-${promotionsText}
-====================================
-총구매액\t\t\t${totalAmountWithoutDiscounts}
-행사할인\t\t\t-${totalDiscountAmount}
-멤버십할인\t\t\t-${membershipDiscount}
-내실돈\t\t\t${finalAmount}
-`;
+  printPromotions(promotionsDetails) {
+    Console.print(MESSAGES.RECEIPT.PROMOTION_HEADER);
+    if (promotionsDetails.length > 0) {
+      promotionsDetails.forEach((item) => {
+        const promotionText = MESSAGES.RECEIPT.PROMOTION_ROW.replace(
+          '{name}',
+          item.name,
+        ).replace('{quantity}', item.quantity);
+        Console.print(promotionText);
+      });
+    } else {
+      Console.print(MESSAGES.RECEIPT.NO_PROMOTION);
+    }
+  },
 
-    Console.print(receiptText);
+  printSummary({
+    totalAmountWithoutDiscounts,
+    totalDiscountAmount,
+    membershipDiscount,
+    finalAmount,
+  }) {
+    Console.print(MESSAGES.RECEIPT.DIVIDER);
+    const summaryTexts = [
+      MESSAGES.RECEIPT.TOTAL_AMOUNT.replace(
+        '{totalAmount}',
+        totalAmountWithoutDiscounts,
+      ),
+      MESSAGES.RECEIPT.PROMOTION_DISCOUNT.replace(
+        '{discountAmount}',
+        totalDiscountAmount,
+      ),
+      MESSAGES.RECEIPT.MEMBERSHIP_DISCOUNT.replace(
+        '{membershipDiscount}',
+        membershipDiscount,
+      ),
+      MESSAGES.RECEIPT.FINAL_AMOUNT.replace('{finalAmount}', finalAmount),
+    ];
+    summaryTexts.forEach((text) => Console.print(text));
   },
 };
 

@@ -58,7 +58,7 @@ class Cart {
       this.#calculateTotalAmountWithoutDiscounts();
     const finalAmount = this.calculateFinalAmount(applyMembershipDiscount);
     const membershipDiscount = applyMembershipDiscount
-      ? this.#membershipManager.calculateMembershipDiscount(
+      ? -this.#membershipManager.calculateMembershipDiscount(
           totalAmountWithoutDiscounts - this.#totalDiscountAmount,
         )
       : 0;
