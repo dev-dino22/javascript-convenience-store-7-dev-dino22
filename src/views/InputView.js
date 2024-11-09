@@ -27,6 +27,23 @@ const InputView = {
       return this.readItem();
     }
   },
+
+  async readAdditionalQuantity() {
+    const input = await Console.readLineAsync(
+      '감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)',
+    );
+    const answer = input.trim().toUpperCase();
+
+    if (answer === 'Y' || answer === 'N') {
+      return answer === 'Y';
+    } else {
+      Console.print('[ERROR] Y 또는 N으로 입력해 주세요.');
+      return this.readAdditionalQuantity();
+    }
+  },
 };
+
+await InputView.readItem();
+await InputView.readAdditionalQuantity();
 
 export default InputView;
