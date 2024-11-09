@@ -12,6 +12,9 @@ const OutputView = {
     Console.print(formattedProductsInfo);
     Console.print(MESSAGES.INFO.LINE_BREAK);
   },
+  printError(error) {
+    Console.print(error);
+  },
 };
 
 export default OutputView;

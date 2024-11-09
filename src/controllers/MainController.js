@@ -15,6 +15,26 @@ class MainController {
     while (continueShopping) {
       OutputView.printHello();
       await this.displayProducts();
+
+      try {
+        // Step 1: 상품명과 수량을 입력받기
+        const itemsToBuy = await InputView.readItem();
+        this.productManager.checkProductStock(itemsToBuy);
+
+        // Step 2: 장바구니 추가
+        itemsToBuy.forEach(({ name, quantity }) => {
+          // 2.1 상품의 가격과 프로모션 재고를 ProductManager에서 조회
+          const { price, availablePromotionalStock, promotion } =
+            this.productManager.returnProductDetails(name);
+
+          // 2.2 Cart에 상품 추가, 필요시 프로모션 적용
+          this.cart.addItem(name, price, quantity, availablePromotionalStock);
+        });
+      } catch (error) {
+        OutputView.printError(error.message);
+        continue;
+      }
+
       continueShopping = await InputView.readAdditionalQuantity();
     }
   }
