@@ -8,10 +8,10 @@ const InputView = {
     try {
       const items = input
         .trim()
-        .match(/\[(.*?)\]/g) // 대괄호로 묶인 부분을 추출
+        .match(/\[(.*?)\]/g)
         .map((item) => {
           const [name, quantity] = item
-            .replace(/[\[\]]/g, '') // 대괄호 제거
+            .replace(/[\[\]]/g, '')
             .split('-')
             .map((value) => value.trim());
           if (!name || isNaN(quantity)) {
@@ -69,11 +69,20 @@ const InputView = {
       return this.readPromotionAddConfirmation(productName, additionalQuantity);
     }
   },
-};
 
-await InputView.readItem();
-await InputView.readMembershipDiscount();
-await InputView.readAdditionalQuantity();
-await InputView.readPromotionAddConfirmation('콜라', 1);
+  async readRegularPriceConfirmation(productName, quantity) {
+    const input = await Console.readLineAsync(
+      `현재 ${productName} ${quantity}개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)`,
+    );
+    const answer = input.trim().toUpperCase();
+
+    if (answer === 'Y' || answer === 'N') {
+      return answer === 'Y';
+    } else {
+      Console.print('[ERROR] Y 또는 N으로 입력해 주세요.');
+      return this.readRegularPriceConfirmation(productName, quantity);
+    }
+  },
+};
 
 export default InputView;
