@@ -9,6 +9,7 @@ const OutputView = {
     Console.print(MESSAGES.INFO.PRODUCT_LIST_HEADER);
     Console.print(MESSAGES.INFO.LINE_BREAK);
     Console.print(formattedProductsInfo);
+    Console.print(MESSAGES.INFO.LINE_BREAK);
   },
 };
 
