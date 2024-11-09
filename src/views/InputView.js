@@ -41,9 +41,24 @@ const InputView = {
       return this.readAdditionalQuantity();
     }
   },
+
+  async readMembershipDiscount() {
+    const input = await Console.readLineAsync(
+      '멤버십 할인을 받으시겠습니까? (Y/N)',
+    );
+    const answer = input.trim().toUpperCase();
+
+    if (answer === 'Y' || answer === 'N') {
+      return answer === 'Y';
+    } else {
+      Console.print('[ERROR] Y 또는 N으로 입력해 주세요.');
+      return this.readMembershipDiscount();
+    }
+  },
 };
 
 await InputView.readItem();
+await InputView.readMembershipDiscount();
 await InputView.readAdditionalQuantity();
 
 export default InputView;
