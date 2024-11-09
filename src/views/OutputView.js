@@ -3,6 +3,7 @@ import MESSAGES from '../constants/Message.js';
 
 const OutputView = {
   printHello() {
+    Console.print(MESSAGES.INFO.LINE_BREAK);
     Console.print(MESSAGES.INFO.HELLO);
   },
   printProducts(formattedProductsInfo) {

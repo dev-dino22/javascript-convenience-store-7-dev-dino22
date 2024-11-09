@@ -10,8 +10,13 @@ class MainController {
   }
 
   async start() {
-    OutputView.printHello();
-    await this.displayProducts();
+    let continueShopping = true;
+
+    while (continueShopping) {
+      OutputView.printHello();
+      await this.displayProducts();
+      continueShopping = await InputView.readAdditionalQuantity();
+    }
   }
 
   async displayProducts() {
