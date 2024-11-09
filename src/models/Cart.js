@@ -28,6 +28,13 @@ class Cart {
   #addDiscount(amount) {
     this.#totalDiscountAmount += amount;
   }
+
+  calculateTotalAmountWithoutDiscounts() {
+    return this.#items.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0,
+    );
+  }
 }
 
 export default Cart;
