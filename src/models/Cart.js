@@ -1,5 +1,6 @@
 import MembershipManager from './MembershipManager.js';
 import InputView from '../views/InputView.js';
+import { MissionUtils } from '@woowacourse/mission-utils';
 
 class Cart {
   #items;
@@ -39,27 +40,25 @@ class Cart {
           name,
           extraQuantity,
         );
+
         if (addMore) {
-          bonusQuantity = extraQuantity;
-          discountAmount = price * bonusQuantity;
+          const promotionResult = this.#promotionManager.applyPromotion(
+            promotionName,
+            quantity,
+            availablePromotionalStock,
+          );
+
+          // promotionResult가 유효한 경우에만 bonusQuantity와 discountAmount를 업데이트
+          if (promotionResult && promotionResult.bonusQuantity > 0) {
+            bonusQuantity = promotionResult.bonusQuantity;
+            discountAmount = price * bonusQuantity;
+          }
         }
       }
     }
-
-    // 구매한 수량 + 증정 수량을 adjustedQuantity로 설정
     const adjustedQuantity = purchaseQuantity + bonusQuantity;
-
-    // 할인 금액 적용 및 장바구니에 아이템 추가
     this.#addDiscount(discountAmount);
     this.#addDiscountedItem(name, price, adjustedQuantity, bonusQuantity);
-  }
-
-  #applyPromotionToItem(promotionName, quantity, availablePromotionalStock) {
-    return this.#promotionManager.applyPromotion(
-      promotionName,
-      quantity,
-      availablePromotionalStock,
-    );
   }
 
   #addDiscountedItem(name, price, quantity, bonusQuantity) {

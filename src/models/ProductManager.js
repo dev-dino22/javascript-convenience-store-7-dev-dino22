@@ -2,15 +2,16 @@ import { loadProductData } from '../utils/loadProductData.js';
 import PromotionManager from './PromotionManager.js';
 import ProductValidator from '../utils/ProductValidator.js';
 import InputView from '../views/InputView.js';
+import { MissionUtils } from '@woowacourse/mission-utils';
 
 class ProductManager {
   #products;
   #promotionManager;
   #validate;
 
-  constructor() {
+  constructor(promotionManager) {
     this.#products = loadProductData();
-    this.#promotionManager = new PromotionManager();
+    this.#promotionManager = promotionManager;
     this.#validate = new ProductValidator();
   }
 
@@ -43,25 +44,28 @@ class ProductManager {
   }
 
   returnProductDetails(name) {
-    // 상품 이름과 프로모션이 있는 항목을 먼저 찾음
     const promotionalProduct = this.#products.find(
       (item) => item.name === name && item.promotion !== null,
     );
 
-    // 기본 제품을 찾음 (프로모션이 없는 제품)
     const regularProduct = this.#products.find(
       (item) => item.name === name && item.promotion === null,
     );
 
-    // 프로모션이 있는 제품의 재고와 프로모션 이름 설정
     const promotionName = promotionalProduct
       ? promotionalProduct.promotion
       : null;
-    const availablePromotionalStock = promotionalProduct
-      ? promotionalProduct.quantity
-      : 0;
 
-    // 가격은 기본 제품에서 가져오고, 기본 재고는 regularProduct가 있으면 사용
+    const availablePromotionalStock =
+      promotionalProduct &&
+      this.#promotionManager.applyPromotion(
+        promotionName,
+        promotionalProduct.quantity,
+        promotionalProduct.quantity,
+      ).bonusQuantity
+        ? promotionalProduct.quantity
+        : 0;
+
     const price = regularProduct
       ? regularProduct.price
       : promotionalProduct.price;

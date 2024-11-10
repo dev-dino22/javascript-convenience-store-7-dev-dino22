@@ -10,8 +10,8 @@ class MainController {
   #cart;
 
   constructor() {
-    this.#productManager = new ProductManager();
     this.#promotionManager = new PromotionManager();
+    this.#productManager = new ProductManager(this.#promotionManager);
     this.#cart = new Cart(this.#productManager, this.#promotionManager);
   }
 
@@ -49,12 +49,28 @@ class MainController {
     OutputView.printProducts(formattedProducts);
   }
 
+  // MainController 클래스 - addCart 메서드 수정
   async addCart() {
     const itemsToBuy = await InputView.readItem();
     this.#productManager.checkProductStock(itemsToBuy);
 
     for (const { name, quantity } of itemsToBuy) {
-      await this.#cart.addItem(name, quantity); // 인자 간소화된 addItem 호출
+      const promotionDetails = this.#productManager.getPromotionDetails(name);
+      let addMore = false;
+
+      // 프로모션이 있는 경우에만 사용자 입력을 받음
+      if (promotionDetails) {
+        const { buy, get } = promotionDetails;
+        if (quantity >= buy) {
+          const extraQuantity = Math.floor(quantity / buy) * get;
+          addMore = await InputView.readPromotionAddConfirmation(
+            name,
+            extraQuantity,
+          );
+        }
+      }
+
+      await this.#cart.addItem(name, quantity, addMore);
     }
   }
 }

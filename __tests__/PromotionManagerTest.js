@@ -1,3 +1,4 @@
+import { MissionUtils } from '@woowacourse/mission-utils';
 import PromotionManager from '../src/models/PromotionManager.js';
 
 describe('PromotionManager 단위 테스트', () => {
@@ -118,10 +119,16 @@ describe('PromotionManager 단위 테스트', () => {
   test('isWithinPromotionPeriod() 기능 테스트 - 프로모션 기간 확인', () => {
     const startDate = '2024-01-01';
     const endDate = '2024-12-31';
+    const currentDate = MissionUtils.DateTimes.now();
 
+    // Set a specific date within the promotion period
     jest.useFakeTimers().setSystemTime(new Date('2024-06-15'));
 
-    const result = promotionManager.isWithinPromotionPeriod(startDate, endDate);
+    const result = promotionManager.isWithinPromotionPeriod(
+      startDate,
+      endDate,
+      currentDate,
+    );
     expect(result).toBe(true);
 
     jest.useRealTimers();

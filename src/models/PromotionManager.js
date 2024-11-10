@@ -1,5 +1,6 @@
 import { loadPromotionData } from '../utils/loadPromotionData.js';
-import { DateTimes } from '@woowacourse/mission-utils';
+import { MissionUtils } from '@woowacourse/mission-utils';
+
 class PromotionManager {
   #promotions;
   #totalDiscountAmount;
@@ -9,22 +10,20 @@ class PromotionManager {
     this.#totalDiscountAmount = 0;
   }
 
-  /*isPromotionApplicable(name) {
-    const promotion = this.#promotions.find((promo) => promo.name === name);
-    return promotion !== undefined;
-  }*/
-
   applyPromotion(promotionName, quantity, availablePromotionalStock) {
     const promotion = this.#promotions.find(
       (promo) => promo.name === promotionName,
     );
+
     if (!promotion || quantity < promotion.buy) {
-      // 프로모션 조건 미충족 시, 무료 증정 수량 없음
       return { adjustedQuantity: quantity, bonusQuantity: 0 };
     }
 
     const { buy, get, start_date, end_date } = promotion;
-    if (!this.isWithinPromotionPeriod(start_date, end_date)) {
+
+    const isWithinPeriod = this.isWithinPromotionPeriod(start_date, end_date);
+
+    if (!isWithinPeriod) {
       return { adjustedQuantity: quantity, bonusQuantity: 0 };
     }
 
@@ -48,9 +47,12 @@ class PromotionManager {
   }
 
   isWithinPromotionPeriod(startDate, endDate) {
-    const currentDate = DateTimes.now();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
     return (
-      currentDate >= new Date(startDate) && currentDate <= new Date(endDate)
+      MissionUtils.DateTimes.now() >= start &&
+      MissionUtils.DateTimes.now() <= end
     );
   }
 
@@ -65,16 +67,15 @@ class PromotionManager {
     if (!promotion) return 0;
 
     const { buy, get, start_date, end_date } = promotion;
+
     if (!this.isWithinPromotionPeriod(start_date, end_date) || quantity < buy) {
       return 0;
     }
 
-    // calculateBonus를 호출하여 applicableBonus 계산
     const applicableBonus =
       this.calculateBonus(quantity, buy, get, availablePromotionalStock) -
       quantity;
 
-    // applicableBonus에 제품 가격을 곱하여 할인 금액 반환
     return applicableBonus * price;
   }
 }
