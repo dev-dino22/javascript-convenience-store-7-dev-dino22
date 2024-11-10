@@ -25,7 +25,7 @@ class Cart {
   async addItem(name, quantity) {
     const { price, promotionName, availablePromotionalStock } =
       this.#productManager.returnProductDetails(name);
-    console.log(availablePromotionalStock);
+
     const promotionDetails =
       this.#promotionManager.getPromotionDetails(promotionName);
     let purchaseQuantity = quantity;
@@ -41,35 +41,46 @@ class Cart {
     ) {
       const { buy, get } = promotionDetails;
       if (quantity >= buy) {
-        // 증정 가능 최대 수량을 프로모션 재고로 제한합니다
-        let maxBonusQuantity = Math.floor(quantity / buy) * get;
-        maxBonusQuantity = Math.min(
+        const maxBonusQuantity = Math.floor(quantity / buy) * get;
+        const actualBonusQuantity = Math.min(
           maxBonusQuantity,
           availablePromotionalStock,
         );
 
-        const addMore = await InputView.readPromotionAddConfirmation(
-          name,
-          maxBonusQuantity,
-        );
+        // 프로모션 할인이 적용되는 최대 수량 계산
+        const totalPromotionalApplicable =
+          Math.floor(availablePromotionalStock / get) * buy;
+        const remainingQuantity = quantity - totalPromotionalApplicable;
 
-        if (addMore) {
-          const promotionResult = await this.#promotionManager.applyPromotion(
-            promotionName,
-            quantity,
-            maxBonusQuantity, // 최대 증정 수량을 제한
+        if (actualBonusQuantity < maxBonusQuantity) {
+          // 프로모션 재고가 부족하여 일부 수량은 정가로 구매해야 함을 알림
+          const confirmRegularPrice =
+            await InputView.readRegularPriceConfirmation(
+              name,
+              remainingQuantity,
+            );
+          if (!confirmRegularPrice) {
+            console.log(`${name} 구매가 취소되었습니다.`);
+            return; // 사용자 거절 시 구매 취소
+          }
+        }
+
+        if (actualBonusQuantity >= maxBonusQuantity) {
+          // 사용자에게 추가 증정 수량 여부를 확인
+          const addMore = await InputView.readPromotionAddConfirmation(
+            name,
+            actualBonusQuantity,
           );
 
-          // promotionResult가 유효한 경우에만 bonusQuantity와 discountAmount를 업데이트
-          if (promotionResult && promotionResult.bonusQuantity > 0) {
-            bonusQuantity = promotionResult.bonusQuantity;
+          if (addMore) {
+            bonusQuantity = actualBonusQuantity;
             discountAmount = price * bonusQuantity;
           }
         }
       }
     }
 
-    const adjustedQuantity = purchaseQuantity + bonusQuantity;
+    const adjustedQuantity = purchaseQuantity; // 요청한 수량에 대해 할인 적용 없음
     this.#addDiscount(discountAmount);
     this.#addDiscountedItem(name, price, adjustedQuantity, bonusQuantity);
   }
