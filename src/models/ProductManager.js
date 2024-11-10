@@ -56,15 +56,21 @@ class ProductManager {
       ? promotionalProduct.promotion
       : null;
 
-    const availablePromotionalStock =
-      promotionalProduct &&
-      this.#promotionManager.applyPromotion(
-        promotionName,
-        promotionalProduct.quantity,
-        promotionalProduct.quantity,
-      ).bonusQuantity
-        ? promotionalProduct.quantity
-        : 0;
+    let availablePromotionalStock = 0;
+
+    if (promotionalProduct) {
+      const promotionDetails =
+        this.#promotionManager.getPromotionDetails(promotionName);
+
+      if (promotionDetails) {
+        const { buy, get } = promotionDetails;
+        // 현재 재고에서 주어진 buy + get 규칙에 따라 최대 보너스 수량 계산
+        const maxApplicablePromotions = Math.floor(
+          promotionalProduct.quantity / (buy + get),
+        );
+        availablePromotionalStock = maxApplicablePromotions * get;
+      }
+    }
 
     const price = regularProduct
       ? regularProduct.price

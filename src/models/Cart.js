@@ -25,7 +25,7 @@ class Cart {
   async addItem(name, quantity) {
     const { price, promotionName, availablePromotionalStock } =
       this.#productManager.returnProductDetails(name);
-
+    console.log(availablePromotionalStock);
     const promotionDetails =
       this.#promotionManager.getPromotionDetails(promotionName);
     let purchaseQuantity = quantity;
@@ -41,17 +41,23 @@ class Cart {
     ) {
       const { buy, get } = promotionDetails;
       if (quantity >= buy) {
-        const extraQuantity = Math.floor(quantity / buy) * get;
+        // 증정 가능 최대 수량을 프로모션 재고로 제한합니다
+        let maxBonusQuantity = Math.floor(quantity / buy) * get;
+        maxBonusQuantity = Math.min(
+          maxBonusQuantity,
+          availablePromotionalStock,
+        );
+
         const addMore = await InputView.readPromotionAddConfirmation(
           name,
-          extraQuantity,
+          maxBonusQuantity,
         );
 
         if (addMore) {
           const promotionResult = await this.#promotionManager.applyPromotion(
             promotionName,
             quantity,
-            availablePromotionalStock,
+            maxBonusQuantity, // 최대 증정 수량을 제한
           );
 
           // promotionResult가 유효한 경우에만 bonusQuantity와 discountAmount를 업데이트
@@ -62,6 +68,7 @@ class Cart {
         }
       }
     }
+
     const adjustedQuantity = purchaseQuantity + bonusQuantity;
     this.#addDiscount(discountAmount);
     this.#addDiscountedItem(name, price, adjustedQuantity, bonusQuantity);
