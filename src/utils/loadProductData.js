@@ -8,10 +8,7 @@ const readFileContent = (filePath) => {
 };
 
 const parsePromotion = (promotion) => {
-  if (promotion === 'null') {
-    return null;
-  }
-  return promotion;
+  return promotion === 'null' ? null : promotion;
 };
 
 const parseProductLine = (line) => {
@@ -28,5 +25,40 @@ const parseProductLine = (line) => {
 
 export const loadProductData = () => {
   const lines = readFileContent(PRODUCTS_FILE_PATH);
-  return lines.map(parseProductLine);
+  const parsedProducts = lines.map(parseProductLine);
+
+  // 모든 제품명 중복 없이 저장
+  const allProductNames = new Set(
+    parsedProducts.map((product) => product.name),
+  );
+
+  // 모든 제품 리스트를 완성
+  const completedProducts = [];
+
+  allProductNames.forEach((productName) => {
+    const promotionalItems = parsedProducts.filter(
+      (product) => product.name === productName && product.promotion !== null,
+    );
+    const regularItem = parsedProducts.find(
+      (product) => product.name === productName && product.promotion === null,
+    );
+
+    // 순서대로 삽입
+    promotionalItems.forEach((promoItem) => completedProducts.push(promoItem));
+
+    // 일반 재고가 없을 경우 "재고 없음" 항목 추가
+    if (!regularItem) {
+      const firstPromoPrice = promotionalItems[0].price;
+      completedProducts.push({
+        name: productName,
+        price: firstPromoPrice,
+        quantity: 0,
+        promotion: null,
+      });
+    } else {
+      completedProducts.push(regularItem);
+    }
+  });
+
+  return completedProducts;
 };

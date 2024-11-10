@@ -8,17 +8,17 @@ class ProductValidator {
     const regularStock = products.find(
       (product) => product.name === name && product.promotion === null,
     );
-    const totalStock =
-      (promotionalStock?.quantity || 0) + (regularStock?.quantity || 0);
-    if (totalStock < quantity) {
+
+    const availablePromotionalStock = promotionalStock?.quantity || 0;
+    const availableRegularStock = regularStock?.quantity || 0;
+
+    if (availablePromotionalStock + availableRegularStock < quantity) {
       throw new Error(MESSAGES.ERROR.INSUFFICIENT_STOCK);
     }
   }
 
-  validatePromotionStock(promotionStock, adjustedQuantity) {
-    if (promotionStock < adjustedQuantity) {
-      throw new Error(MESSAGES.ERROR.INSUFFICIENT_PROMOTION_STOCK);
-    }
+  isPromotionStockSufficient(promotionStock, requiredQuantity) {
+    return promotionStock >= requiredQuantity;
   }
 }
 

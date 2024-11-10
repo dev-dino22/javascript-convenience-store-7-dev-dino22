@@ -14,16 +14,36 @@ class Cart {
     this.#totalDiscountAmount = 0;
   }
 
-  addItem(name, price, quantity, availablePromotionalStock) {
-    const adjustedQuantity = this.#promotionManager.applyPromotion(
-      name,
-      quantity,
-      availablePromotionalStock,
-    );
-    this.#items.push({ name, price, quantity: adjustedQuantity });
+  resetCart() {
+    this.#items = [];
+    this.#totalDiscountAmount = 0;
+  }
 
-    const discount = (quantity - adjustedQuantity) * price;
+  addItem(name, price, quantity, availablePromotionalStock, promotionName) {
+    const { adjustedQuantity = quantity, bonusQuantity = 0 } =
+      this.#promotionManager.applyPromotion(
+        promotionName,
+        quantity,
+        availablePromotionalStock,
+      );
+
+    this.#items.push({
+      name,
+      price,
+      quantity: adjustedQuantity,
+      bonusQuantity,
+    });
+
+    const discount = bonusQuantity * price;
     this.#addDiscount(discount);
+  }
+
+  // 전체 아이템 차감 메서드 - 구매 수량과 증정 수량 모두 포함
+  deductAllItemsStock(productManager) {
+    this.#items.forEach(({ name, quantity, bonusQuantity }) => {
+      // quantity와 bonusQuantity로 차감
+      productManager.deductStock(name, quantity, bonusQuantity);
+    });
   }
 
   #addDiscount(amount) {
@@ -33,7 +53,6 @@ class Cart {
   calculateFinalAmount(applyMembershipDiscount = false) {
     let totalAmount = this.#calculateTotalAmountWithoutDiscounts();
 
-    // 프로모션 할인 적용
     totalAmount -= this.#totalDiscountAmount;
 
     // 멤버십 할인 적용
@@ -46,15 +65,10 @@ class Cart {
 
   #calculateTotalAmountWithoutDiscounts() {
     return this.#items.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) =>
+        total + item.price * (item.quantity + item.bonusQuantity),
       0,
     );
-  }
-
-  deductAllItemsStock(productManager) {
-    this.#items.forEach(({ name, quantity }) => {
-      productManager.deductStock(name, quantity);
-    });
   }
 
   generateReceiptData(applyMembershipDiscount = false) {
@@ -62,7 +76,7 @@ class Cart {
       this.#calculateTotalAmountWithoutDiscounts();
     const finalAmount = this.calculateFinalAmount(applyMembershipDiscount);
     const membershipDiscount = applyMembershipDiscount
-      ? -this.#membershipManager.calculateMembershipDiscount(
+      ? this.#membershipManager.calculateMembershipDiscount(
           totalAmountWithoutDiscounts - this.#totalDiscountAmount,
         )
       : 0;
@@ -74,10 +88,10 @@ class Cart {
     }));
 
     const promotionsDetails = this.#items
-      .filter((item) => item.quantity > 1)
-      .map(({ name, quantity }) => ({
+      .filter((item) => item.bonusQuantity > 0)
+      .map(({ name, bonusQuantity }) => ({
         name,
-        quantity: quantity - 1,
+        quantity: bonusQuantity,
       }));
 
     return {

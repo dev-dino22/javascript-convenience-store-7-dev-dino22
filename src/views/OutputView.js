@@ -2,19 +2,26 @@ import { Console } from '@woowacourse/mission-utils';
 import MESSAGES from '../constants/Message.js';
 
 const OutputView = {
+  formatPrice(price) {
+    return new Intl.NumberFormat('ko-KR').format(price);
+  },
+
   printHello() {
     Console.print(MESSAGES.INFO.LINE_BREAK);
     Console.print(MESSAGES.INFO.HELLO);
   },
+
   printProducts(formattedProductsInfo) {
     Console.print(MESSAGES.INFO.PRODUCT_LIST_HEADER);
     Console.print(MESSAGES.INFO.LINE_BREAK);
     Console.print(formattedProductsInfo);
     Console.print(MESSAGES.INFO.LINE_BREAK);
   },
+
   printError(error) {
     Console.print(error);
   },
+
   printReceipt(receiptData) {
     this.printHeader();
     this.printItems(receiptData.itemsDetails);
@@ -31,7 +38,7 @@ const OutputView = {
     itemsDetails.forEach((item) => {
       const itemText = MESSAGES.RECEIPT.ITEM_ROW.replace('{name}', item.name)
         .replace('{quantity}', item.quantity)
-        .replace('{total}', item.total);
+        .replace('{total}', this.formatPrice(item.total));
       Console.print(itemText);
     });
   },
@@ -61,17 +68,20 @@ const OutputView = {
     const summaryTexts = [
       MESSAGES.RECEIPT.TOTAL_AMOUNT.replace(
         '{totalAmount}',
-        totalAmountWithoutDiscounts,
+        this.formatPrice(totalAmountWithoutDiscounts),
       ),
       MESSAGES.RECEIPT.PROMOTION_DISCOUNT.replace(
         '{discountAmount}',
-        totalDiscountAmount,
+        this.formatPrice(totalDiscountAmount),
       ),
       MESSAGES.RECEIPT.MEMBERSHIP_DISCOUNT.replace(
         '{membershipDiscount}',
-        membershipDiscount,
+        this.formatPrice(membershipDiscount),
       ),
-      MESSAGES.RECEIPT.FINAL_AMOUNT.replace('{finalAmount}', finalAmount),
+      MESSAGES.RECEIPT.FINAL_AMOUNT.replace(
+        '{finalAmount}',
+        this.formatPrice(finalAmount),
+      ),
     ];
     summaryTexts.forEach((text) => Console.print(text));
   },
