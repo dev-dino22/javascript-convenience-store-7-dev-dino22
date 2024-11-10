@@ -54,7 +54,7 @@ class MainController {
     this.#productManager.checkProductStock(itemsToBuy);
 
     for (const { name, quantity } of itemsToBuy) {
-      this.#cart.addItem(name, quantity); // 인자 간소화된 addItem 호출
+      await this.#cart.addItem(name, quantity); // 인자 간소화된 addItem 호출
     }
   }
 }

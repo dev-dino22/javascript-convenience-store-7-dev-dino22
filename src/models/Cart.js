@@ -1,4 +1,5 @@
 import MembershipManager from './MembershipManager.js';
+import InputView from '../views/InputView.js';
 
 class Cart {
   #items;
@@ -20,16 +21,36 @@ class Cart {
     this.#totalDiscountAmount = 0;
   }
 
-  addItem(name, quantity) {
+  async addItem(name, quantity) {
     const { price, promotionName, availablePromotionalStock } =
       this.#productManager.returnProductDetails(name);
 
-    const { adjustedQuantity, bonusQuantity } = this.#applyPromotionToItem(
-      promotionName,
-      quantity,
-      availablePromotionalStock,
-    );
+    const promotionDetails =
+      this.#promotionManager.getPromotionDetails(promotionName);
+    let purchaseQuantity = quantity;
+    let bonusQuantity = 0;
+    let discountAmount = 0;
 
+    if (promotionDetails) {
+      const { buy, get } = promotionDetails;
+      if (quantity >= buy) {
+        const extraQuantity = Math.floor(quantity / buy) * get;
+        const addMore = await InputView.readPromotionAddConfirmation(
+          name,
+          extraQuantity,
+        );
+        if (addMore) {
+          bonusQuantity = extraQuantity;
+          discountAmount = price * bonusQuantity;
+        }
+      }
+    }
+
+    // 구매한 수량 + 증정 수량을 adjustedQuantity로 설정
+    const adjustedQuantity = purchaseQuantity + bonusQuantity;
+
+    // 할인 금액 적용 및 장바구니에 아이템 추가
+    this.#addDiscount(discountAmount);
     this.#addDiscountedItem(name, price, adjustedQuantity, bonusQuantity);
   }
 
@@ -42,13 +63,18 @@ class Cart {
   }
 
   #addDiscountedItem(name, price, quantity, bonusQuantity) {
+    // `quantity`는 최종 재고 차감 수량(사용자가 실제로 구매한 수량 + 증정 포함)
     this.#items.push({ name, price, quantity, bonusQuantity });
-    this.#addDiscount(bonusQuantity * price);
   }
 
   deductAllItemsStock() {
     this.#items.forEach(({ name, quantity, bonusQuantity }) => {
-      this.#productManager.deductStock(name, quantity, bonusQuantity);
+      const actualPurchaseQuantity = quantity - bonusQuantity; // 실제 구매 수량 계산
+      this.#productManager.deductStock(
+        name,
+        actualPurchaseQuantity,
+        bonusQuantity,
+      );
     });
   }
 
@@ -57,18 +83,18 @@ class Cart {
   }
 
   calculateFinalAmount(applyMembershipDiscount = false) {
-    const totalAmount =
-      this.#calculateTotalAmountWithoutDiscounts() - this.#totalDiscountAmount;
+    const totalAmount = this.#calculateTotalAmountWithoutDiscounts();
+    const discountTotal = totalAmount - this.#totalDiscountAmount;
     return (
-      totalAmount -
-      this.#calculateMembershipDiscount(totalAmount, applyMembershipDiscount)
+      discountTotal -
+      this.#calculateMembershipDiscount(discountTotal, applyMembershipDiscount)
     );
   }
 
   #calculateTotalAmountWithoutDiscounts() {
+    // 총 구매액은 증정 수량을 포함한 총 수량 기준으로 계산
     return this.#items.reduce(
-      (total, item) =>
-        total + item.price * (item.quantity + item.bonusQuantity),
+      (total, item) => total + item.price * item.quantity,
       0,
     );
   }
@@ -83,7 +109,7 @@ class Cart {
   #calculateSummaryDetails(applyMembershipDiscount) {
     return {
       totalAmountWithoutDiscounts: this.#calculateTotalAmountWithoutDiscounts(),
-      totalDiscountAmount: this.#totalDiscountAmount,
+      totalDiscountAmount: this.#totalDiscountAmount, // 할인액을 정확히 반영
       membershipDiscount: this.#getCalculatedMembershipDiscount(
         applyMembershipDiscount,
       ),
@@ -103,15 +129,16 @@ class Cart {
   generateReceiptData(applyMembershipDiscount = false) {
     return {
       ...this.#calculateSummaryDetails(applyMembershipDiscount),
-      itemsDetails: this.#getItemsDetails(),
+      itemsDetails: this.#getItemsDetails(), // adjustedQuantity가 반영되도록 수정
       promotionsDetails: this.#getPromotionsDetails(),
     };
   }
 
   #getItemsDetails() {
+    // adjustedQuantity 반영하여 출력
     return this.#items.map(({ name, quantity, price }) => ({
       name,
-      quantity,
+      quantity, // adjustedQuantity가 적용된 수량을 출력
       total: price * quantity,
     }));
   }

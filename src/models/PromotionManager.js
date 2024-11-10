@@ -18,7 +18,10 @@ class PromotionManager {
     const promotion = this.#promotions.find(
       (promo) => promo.name === promotionName,
     );
-    if (!promotion) return { adjustedQuantity: quantity, bonusQuantity: 0 };
+    if (!promotion || quantity < promotion.buy) {
+      // 프로모션 조건 미충족 시, 무료 증정 수량 없음
+      return { adjustedQuantity: quantity, bonusQuantity: 0 };
+    }
 
     const { buy, get, start_date, end_date } = promotion;
     if (!this.isWithinPromotionPeriod(start_date, end_date)) {
@@ -32,6 +35,16 @@ class PromotionManager {
       adjustedQuantity: quantity,
       bonusQuantity: applicableBonus,
     };
+  }
+
+  getPromotionDetails(promotionName) {
+    const promotion = this.#promotions.find(
+      (promo) => promo.name === promotionName,
+    );
+    if (!promotion) return null;
+
+    const { buy, get } = promotion;
+    return { buy, get };
   }
 
   isWithinPromotionPeriod(startDate, endDate) {

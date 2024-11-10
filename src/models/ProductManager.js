@@ -73,8 +73,6 @@ class ProductManager {
   }
 
   deductStock(name, purchaseQuantity = 0, bonusQuantity = 0) {
-    const totalQuantity = purchaseQuantity + bonusQuantity;
-
     const promotionalStock = this.#products.find(
       (product) => product.name === name && product.promotion !== null,
     );
@@ -82,7 +80,7 @@ class ProductManager {
       (product) => product.name === name && product.promotion === null,
     );
 
-    // Step 1: 보너스 수량은 무조건 promotionalStock에서 차감
+    // Step 1: 보너스 수량은 promotionalStock에서만 차감
     if (promotionalStock && bonusQuantity > 0) {
       const deductBonusAmount = Math.min(
         promotionalStock.quantity,
@@ -112,6 +110,7 @@ class ProductManager {
       throw new Error('[ERROR] 재고가 부족합니다.');
     }
   }
+
   // 상품 정보를 문자열로 가공하여 반환
   formatProductsInfo() {
     const productInfoLines = this.#products.map((product) => {
