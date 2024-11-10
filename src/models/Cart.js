@@ -31,6 +31,7 @@ class Cart {
     let purchaseQuantity = quantity;
     let bonusQuantity = 0;
     let discountAmount = 0;
+
     if (
       promotionDetails &&
       this.#promotionManager.isWithinPromotionPeriod(

@@ -42,8 +42,8 @@ class PromotionManager {
     );
     if (!promotion) return null;
 
-    const { buy, get } = promotion;
-    return { buy, get };
+    const { buy, get, start_date, end_date } = promotion;
+    return { buy, get, start_date, end_date };
   }
 
   isWithinPromotionPeriod(startDate, endDate) {
