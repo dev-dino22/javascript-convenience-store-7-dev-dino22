@@ -31,25 +31,30 @@ describe('Cart 클래스 테스트', () => {
     mockPromotionManager = {
       getPromotionDetails: jest.fn((promotionName) => {
         if (promotionName === 'PROMO1') {
-          return { buy: 2, get: 1 }; // 2+1 프로모션
+          return {
+            buy: 2,
+            get: 1,
+            start_date: '2024-06-01',
+            end_date: '2024-12-31',
+          };
         }
         return null;
       }),
       applyPromotion: jest.fn(
         (promotionName, quantity, availablePromotionalStock) => {
+          const promotionDetails =
+            mockPromotionManager.getPromotionDetails(promotionName);
           const currentDate = MissionUtils.DateTimes.now();
+          const promotionStartDate = new Date(promotionDetails.start_date);
+          const promotionEndDate = new Date(promotionDetails.end_date);
 
-          // 유효한 프로모션 날짜인지 확인 (2024-06-01~2024-12-31 유효)
-          const promotionStartDate = new Date('2024-06-01');
-          const promotionEndDate = new Date('2024-12-31');
           const isWithinPromotionPeriod =
             currentDate >= promotionStartDate &&
             currentDate <= promotionEndDate;
 
-          // 날짜가 유효하지 않으면 bonusQuantity: 0 반환
           if (
             promotionName === 'PROMO1' &&
-            quantity >= 2 &&
+            quantity >= promotionDetails.buy &&
             isWithinPromotionPeriod
           ) {
             return { adjustedQuantity: quantity, bonusQuantity: 1 };
@@ -57,6 +62,14 @@ describe('Cart 클래스 테스트', () => {
           return { adjustedQuantity: quantity, bonusQuantity: 0 };
         },
       ),
+      isWithinPromotionPeriod: jest.fn((startDate, endDate) => {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        return (
+          MissionUtils.DateTimes.now() >= start &&
+          MissionUtils.DateTimes.now() <= end
+        );
+      }),
     };
 
     cart = new Cart(mockProductManager, mockPromotionManager);

@@ -31,8 +31,13 @@ class Cart {
     let purchaseQuantity = quantity;
     let bonusQuantity = 0;
     let discountAmount = 0;
-
-    if (promotionDetails) {
+    if (
+      promotionDetails &&
+      this.#promotionManager.isWithinPromotionPeriod(
+        promotionDetails.start_date,
+        promotionDetails.end_date,
+      )
+    ) {
       const { buy, get } = promotionDetails;
       if (quantity >= buy) {
         const extraQuantity = Math.floor(quantity / buy) * get;
@@ -42,7 +47,7 @@ class Cart {
         );
 
         if (addMore) {
-          const promotionResult = this.#promotionManager.applyPromotion(
+          const promotionResult = await this.#promotionManager.applyPromotion(
             promotionName,
             quantity,
             availablePromotionalStock,
