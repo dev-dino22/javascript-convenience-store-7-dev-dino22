@@ -1,16 +1,17 @@
-import PromotionManager from './PromotionManager.js';
 import MembershipManager from './MembershipManager.js';
 
 class Cart {
   #items;
   #promotionManager;
   #membershipManager;
+  #productManager;
   #totalDiscountAmount;
 
-  constructor() {
+  constructor(productManager, promotionManager) {
     this.#items = [];
-    this.#promotionManager = new PromotionManager();
+    this.#promotionManager = promotionManager;
     this.#membershipManager = new MembershipManager();
+    this.#productManager = productManager;
     this.#totalDiscountAmount = 0;
   }
 
@@ -19,30 +20,35 @@ class Cart {
     this.#totalDiscountAmount = 0;
   }
 
-  addItem(name, price, quantity, availablePromotionalStock, promotionName) {
-    const { adjustedQuantity = quantity, bonusQuantity = 0 } =
-      this.#promotionManager.applyPromotion(
-        promotionName,
-        quantity,
-        availablePromotionalStock,
-      );
+  addItem(name, quantity) {
+    const { price, promotionName, availablePromotionalStock } =
+      this.#productManager.returnProductDetails(name);
 
-    this.#items.push({
-      name,
-      price,
-      quantity: adjustedQuantity,
-      bonusQuantity,
-    });
+    const { adjustedQuantity, bonusQuantity } = this.#applyPromotionToItem(
+      promotionName,
+      quantity,
+      availablePromotionalStock,
+    );
 
-    const discount = bonusQuantity * price;
-    this.#addDiscount(discount);
+    this.#addDiscountedItem(name, price, adjustedQuantity, bonusQuantity);
   }
 
-  // 전체 아이템 차감 메서드 - 구매 수량과 증정 수량 모두 포함
-  deductAllItemsStock(productManager) {
+  #applyPromotionToItem(promotionName, quantity, availablePromotionalStock) {
+    return this.#promotionManager.applyPromotion(
+      promotionName,
+      quantity,
+      availablePromotionalStock,
+    );
+  }
+
+  #addDiscountedItem(name, price, quantity, bonusQuantity) {
+    this.#items.push({ name, price, quantity, bonusQuantity });
+    this.#addDiscount(bonusQuantity * price);
+  }
+
+  deductAllItemsStock() {
     this.#items.forEach(({ name, quantity, bonusQuantity }) => {
-      // quantity와 bonusQuantity로 차감
-      productManager.deductStock(name, quantity, bonusQuantity);
+      this.#productManager.deductStock(name, quantity, bonusQuantity);
     });
   }
 
@@ -51,16 +57,12 @@ class Cart {
   }
 
   calculateFinalAmount(applyMembershipDiscount = false) {
-    let totalAmount = this.#calculateTotalAmountWithoutDiscounts();
-
-    totalAmount -= this.#totalDiscountAmount;
-
-    // 멤버십 할인 적용
-    const membershipDiscount = applyMembershipDiscount
-      ? this.#membershipManager.calculateMembershipDiscount(totalAmount)
-      : 0;
-
-    return totalAmount - membershipDiscount;
+    const totalAmount =
+      this.#calculateTotalAmountWithoutDiscounts() - this.#totalDiscountAmount;
+    return (
+      totalAmount -
+      this.#calculateMembershipDiscount(totalAmount, applyMembershipDiscount)
+    );
   }
 
   #calculateTotalAmountWithoutDiscounts() {
@@ -71,37 +73,63 @@ class Cart {
     );
   }
 
-  generateReceiptData(applyMembershipDiscount = false) {
-    const totalAmountWithoutDiscounts =
-      this.#calculateTotalAmountWithoutDiscounts();
-    const finalAmount = this.calculateFinalAmount(applyMembershipDiscount);
-    const membershipDiscount = applyMembershipDiscount
-      ? this.#membershipManager.calculateMembershipDiscount(
-          totalAmountWithoutDiscounts - this.#totalDiscountAmount,
-        )
-      : 0;
+  #calculateMembershipDiscount(totalAmount, applyMembershipDiscount) {
+    if (!applyMembershipDiscount) {
+      return 0;
+    }
+    return this.#membershipManager.calculateMembershipDiscount(totalAmount);
+  }
 
-    const itemsDetails = this.#items.map(({ name, quantity, price }) => ({
+  #calculateSummaryDetails(applyMembershipDiscount) {
+    return {
+      totalAmountWithoutDiscounts: this.#calculateTotalAmountWithoutDiscounts(),
+      totalDiscountAmount: this.#totalDiscountAmount,
+      membershipDiscount: this.#getCalculatedMembershipDiscount(
+        applyMembershipDiscount,
+      ),
+      finalAmount: this.calculateFinalAmount(applyMembershipDiscount),
+    };
+  }
+
+  #getCalculatedMembershipDiscount(applyMembershipDiscount) {
+    const baseAmount =
+      this.#calculateTotalAmountWithoutDiscounts() - this.#totalDiscountAmount;
+    return this.#calculateMembershipDiscount(
+      baseAmount,
+      applyMembershipDiscount,
+    );
+  }
+
+  generateReceiptData(applyMembershipDiscount = false) {
+    return {
+      ...this.#calculateSummaryDetails(applyMembershipDiscount),
+      itemsDetails: this.#getItemsDetails(),
+      promotionsDetails: this.#getPromotionsDetails(),
+    };
+  }
+
+  #getItemsDetails() {
+    return this.#items.map(({ name, quantity, price }) => ({
       name,
       quantity,
       total: price * quantity,
     }));
+  }
 
-    const promotionsDetails = this.#items
-      .filter((item) => item.bonusQuantity > 0)
-      .map(({ name, bonusQuantity }) => ({
-        name,
-        quantity: bonusQuantity,
-      }));
+  #getPromotionsDetails() {
+    const promotionalItems = this.#filterPromotionalItems();
+    return this.#mapPromotionalDetails(promotionalItems);
+  }
 
-    return {
-      itemsDetails,
-      promotionsDetails,
-      totalAmountWithoutDiscounts,
-      totalDiscountAmount: this.#totalDiscountAmount,
-      membershipDiscount,
-      finalAmount,
-    };
+  #filterPromotionalItems() {
+    return this.#items.filter((item) => item.bonusQuantity > 0);
+  }
+
+  #mapPromotionalDetails(promotionalItems) {
+    return promotionalItems.map(({ name, bonusQuantity }) => ({
+      name,
+      quantity: bonusQuantity,
+    }));
   }
 }
 
