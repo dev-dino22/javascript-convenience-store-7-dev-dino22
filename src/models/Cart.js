@@ -47,7 +47,7 @@ class Cart {
           availablePromotionalStock,
         );
 
-        // 프로모션 할인이 적용되는 최대 수량 계산
+        // 프로모션 할인이 적용되지 않는 수량 계산
         const totalPromotionalApplicable =
           Math.floor(availablePromotionalStock / get) * buy;
         const remainingQuantity = quantity - totalPromotionalApplicable;
@@ -63,15 +63,16 @@ class Cart {
             console.log(`${name} 구매가 취소되었습니다.`);
             return; // 사용자 거절 시 구매 취소
           }
-        }
-
-        if (actualBonusQuantity >= maxBonusQuantity) {
-          // 사용자에게 추가 증정 수량 여부를 확인
+          // 정가로 남은 수량을 구매하기로 결정한 경우
+          purchaseQuantity = totalPromotionalApplicable + remainingQuantity;
+          bonusQuantity = actualBonusQuantity;
+          discountAmount = price * bonusQuantity;
+        } else if (actualBonusQuantity === maxBonusQuantity) {
+          // 프로모션 재고가 충분할 때 사용자에게 증정 수량을 추가할지 묻기
           const addMore = await InputView.readPromotionAddConfirmation(
             name,
             actualBonusQuantity,
           );
-
           if (addMore) {
             bonusQuantity = actualBonusQuantity;
             discountAmount = price * bonusQuantity;
@@ -80,11 +81,11 @@ class Cart {
       }
     }
 
-    const adjustedQuantity = purchaseQuantity; // 요청한 수량에 대해 할인 적용 없음
+    // 최종 구매 수량은 실제 구매한 수량만 반영
+    const adjustedQuantity = purchaseQuantity;
     this.#addDiscount(discountAmount);
     this.#addDiscountedItem(name, price, adjustedQuantity, bonusQuantity);
   }
-
   #addDiscountedItem(name, price, quantity, bonusQuantity) {
     // `quantity`는 최종 재고 차감 수량(사용자가 실제로 구매한 수량 + 증정 포함)
     this.#items.push({ name, price, quantity, bonusQuantity });
