@@ -49,14 +49,16 @@ const OutputView = {
 
   printPromotions(promotionsDetails) {
     Console.print(MESSAGES.RECEIPT.PROMOTION_HEADER);
-    if (promotionsDetails.length > 0) {
-      promotionsDetails.forEach((item) => {
-        const promotionText = `${item.name.padEnd(16)}${String(item.quantity).padStart(6)}`;
-        Console.print(promotionText);
-      });
-    } else {
+
+    if (promotionsDetails.length === 0) {
       Console.print(MESSAGES.RECEIPT.NO_PROMOTION);
+      return;
     }
+
+    promotionsDetails.forEach((item) => {
+      const promotionText = `${item.name.padEnd(16)}${String(item.quantity).padStart(6)}`;
+      Console.print(promotionText);
+    });
   },
 
   printSummary({

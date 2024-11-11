@@ -26,66 +26,75 @@ class ProductManager {
       (product) => product.name === name && product.promotion !== null,
     );
     const availablePromotionalStock = promotionalStock?.quantity || 0;
-
-    // 프로모션 재고가 충분하지 않을 경우
     if (
       !this.#validate.isPromotionStockSufficient(
         availablePromotionalStock,
         quantity,
       )
     ) {
-      // 프로모션 없이 구매할지 여부를 묻기
       const proceedWithoutPromotion =
         await InputView.readRegularPriceConfirmation(name, quantity);
-      if (!proceedWithoutPromotion) return false; // 구매를 원치 않으면 false 반환
+      if (!proceedWithoutPromotion) return false;
     }
+    return true;
+  }
+  findPromotionalProduct(name) {
+    return this.#products.find(
+      (item) => item.name === name && item.promotion !== null,
+    );
+  }
 
-    return true; // 프로모션 재고가 충분하거나 사용자가 프로모션 없이 구매를 원함
+  findRegularProduct(name) {
+    return this.#products.find(
+      (item) => item.name === name && item.promotion === null,
+    );
+  }
+
+  calculatePromotionalStock(promotionalProduct) {
+    if (!promotionalProduct) return 0;
+
+    const promotionDetails = this.#promotionManager.getPromotionDetails(
+      promotionalProduct.promotion,
+    );
+    if (!promotionDetails) return 0;
+
+    const { buy, get } = promotionDetails;
+    if (buy === 1 && get === 1)
+      return Math.floor(promotionalProduct.quantity / 2);
+
+    const maxApplicablePromotions = Math.floor(
+      promotionalProduct.quantity / (buy + get),
+    );
+    return maxApplicablePromotions * get;
+  }
+
+  derivePriceAndQuantity(regularProduct, promotionalProduct) {
+    if (regularProduct)
+      return { price: regularProduct.price, quantity: regularProduct.quantity };
+    if (promotionalProduct)
+      return {
+        price: promotionalProduct.price,
+        quantity: promotionalProduct.quantity,
+      };
+    return { price: 0, quantity: 0 };
   }
 
   returnProductDetails(name) {
-    const promotionalProduct = this.#products.find(
-      (item) => item.name === name && item.promotion !== null,
-    );
+    const promotionalProduct = this.findPromotionalProduct(name);
+    const regularProduct = this.findRegularProduct(name);
 
-    const regularProduct = this.#products.find(
-      (item) => item.name === name && item.promotion === null,
-    );
-
-    const promotionName = promotionalProduct
-      ? promotionalProduct.promotion
-      : null;
-
-    let availablePromotionalStock = 0;
-
+    let promotionName = null;
     if (promotionalProduct) {
-      const promotionDetails =
-        this.#promotionManager.getPromotionDetails(promotionName);
-
-      if (promotionDetails) {
-        const { buy, get } = promotionDetails;
-
-        if (buy === 1 && get === 1) {
-          // 1+1 프로모션일 때, 재고 절반만 증정 가능
-          availablePromotionalStock = Math.floor(
-            promotionalProduct.quantity / 2,
-          );
-        } else {
-          // 일반 N+1 프로모션 처리
-          const maxApplicablePromotions = Math.floor(
-            promotionalProduct.quantity / (buy + get),
-          );
-          availablePromotionalStock = maxApplicablePromotions * get;
-        }
-      }
+      promotionName = promotionalProduct.promotion;
     }
 
-    const price = regularProduct
-      ? regularProduct.price
-      : promotionalProduct.price;
-    const quantity = regularProduct
-      ? regularProduct.quantity
-      : promotionalProduct.quantity;
+    const availablePromotionalStock =
+      this.calculatePromotionalStock(promotionalProduct);
+
+    const { price, quantity } = this.derivePriceAndQuantity(
+      regularProduct,
+      promotionalProduct,
+    );
 
     return { price, promotionName, availablePromotionalStock, quantity };
   }
@@ -98,7 +107,6 @@ class ProductManager {
       (product) => product.name === name && product.promotion === null,
     );
 
-    // Step 1: 보너스 수량은 promotionalStock에서만 차감
     if (promotionalStock && bonusQuantity > 0) {
       const deductBonusAmount = Math.min(
         promotionalStock.quantity,
@@ -107,7 +115,6 @@ class ProductManager {
       promotionalStock.quantity -= deductBonusAmount;
     }
 
-    // Step 2: 구매 수량을 promotionalStock에서 먼저 차감
     let remainingPurchaseQuantity = purchaseQuantity;
     if (promotionalStock && remainingPurchaseQuantity > 0) {
       const deductPurchaseAmount = Math.min(
@@ -118,13 +125,15 @@ class ProductManager {
       remainingPurchaseQuantity -= deductPurchaseAmount;
     }
 
-    // Step 3: 남은 구매 수량을 regularStock에서 차감
     if (remainingPurchaseQuantity > 0 && regularStock) {
       if (regularStock.quantity < remainingPurchaseQuantity) {
         throw new Error('[ERROR] 재고가 부족합니다.');
       }
       regularStock.quantity -= remainingPurchaseQuantity;
-    } else if (remainingPurchaseQuantity > 0) {
+      return;
+    }
+
+    if (remainingPurchaseQuantity > 0) {
       throw new Error('[ERROR] 재고가 부족합니다.');
     }
   }

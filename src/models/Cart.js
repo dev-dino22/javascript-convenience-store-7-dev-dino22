@@ -51,7 +51,6 @@ class Cart {
           maxBonusQuantity,
           availablePromotionalStock,
         );
-        console.log(maxBonusQuantity);
 
         if (actualBonusQuantity === maxBonusQuantity) {
           // 프로모션 재고가 충분한 경우

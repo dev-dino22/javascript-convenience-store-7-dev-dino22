@@ -11,6 +11,7 @@ const MESSAGES = {
     IS_NOT_FORMAT:
       '[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.',
     NOT_Y_OR_N: '[ERROR] Y 또는 N으로 입력해 주세요.',
+    EMPTY_INPUT: '[ERROR] 입력값이 비었습니다.',
   },
   RECEIPT: {
     TITLE: '==============W 편의점================',
