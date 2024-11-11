@@ -7,25 +7,20 @@ const InputView = {
       MESSAGES.INPUT.PURCHASE_ITEMS,
     );
 
-    try {
-      const items = input
-        .trim()
-        .match(/\[(.*?)\]/g)
-        .map((item) => {
-          const [name, quantity] = item
-            .replace(/[\[\]]/g, '')
-            .split('-')
-            .map((value) => value.trim());
-          if (!name || isNaN(quantity)) {
-            throw new Error(MESSAGES.ERROR.IS_NOT_FORMAT);
-          }
-          return { name, quantity: parseInt(quantity, 10) };
-        });
-      return items;
-    } catch (error) {
-      MissionUtils.Console.print(error.message);
-      return await this.readItem();
-    }
+    const items = input
+      .trim()
+      .match(/\[(.*?)\]/g)
+      .map((item) => {
+        const [name, quantity] = item
+          .replace(/[\[\]]/g, '')
+          .split('-')
+          .map((value) => value.trim());
+        if (!name || isNaN(quantity)) {
+          throw new Error(MESSAGES.ERROR.IS_NOT_FORMAT);
+        }
+        return { name, quantity: parseInt(quantity, 10) };
+      });
+    return items;
   },
 
   async readAdditionalQuantity() {
@@ -38,8 +33,7 @@ const InputView = {
       return answer === 'Y';
     }
 
-    MissionUtils.Console.print(MESSAGES.ERROR.NOT_Y_OR_N);
-    return await this.readAdditionalQuantity();
+    throw new Error(MESSAGES.ERROR.NOT_Y_OR_N);
   },
 
   async readMembershipDiscount() {
@@ -51,8 +45,7 @@ const InputView = {
     if (answer === 'Y' || answer === 'N') {
       return answer === 'Y';
     }
-    MissionUtils.Console.print(MESSAGES.ERROR.NOT_Y_OR_N);
-    return await this.readMembershipDiscount();
+    throw new Error(MESSAGES.ERROR.NOT_Y_OR_N);
   },
 
   async readPromotionAddConfirmation(productName, additionalQuantity) {
@@ -67,11 +60,7 @@ const InputView = {
     if (answer === 'Y' || answer === 'N') {
       return answer === 'Y';
     }
-    MissionUtils.Console.print(MESSAGES.ERROR.NOT_Y_OR_N);
-    return await this.readPromotionAddConfirmation(
-      productName,
-      additionalQuantity,
-    );
+    throw new Error(MESSAGES.ERROR.NOT_Y_OR_N);
   },
 
   async readRegularPriceConfirmation(productName, quantity) {
@@ -86,8 +75,7 @@ const InputView = {
     if (answer === 'Y' || answer === 'N') {
       return answer === 'Y';
     }
-    MissionUtils.Console.print(MESSAGES.ERROR.NOT_Y_OR_N);
-    return await this.readRegularPriceConfirmation(productName, quantity);
+    throw new Error(MESSAGES.ERROR.NOT_Y_OR_N);
   },
 };
 
