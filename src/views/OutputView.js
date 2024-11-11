@@ -63,13 +63,14 @@ const OutputView = {
     totalDiscountAmount,
     membershipDiscount,
     finalAmount,
+    totalQuantity,
   }) {
     Console.print(MESSAGES.RECEIPT.DIVIDER);
     const summaryTexts = [
       MESSAGES.RECEIPT.TOTAL_AMOUNT.replace(
-        '{totalAmount}',
-        this.formatPrice(totalAmountWithoutDiscounts),
-      ),
+        '{totalQuantity}',
+        totalQuantity,
+      ).replace('{totalAmount}', this.formatPrice(totalAmountWithoutDiscounts)),
       MESSAGES.RECEIPT.PROMOTION_DISCOUNT.replace(
         '{discountAmount}',
         this.formatPrice(totalDiscountAmount),

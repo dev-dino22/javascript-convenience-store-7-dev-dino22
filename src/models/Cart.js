@@ -8,6 +8,7 @@ class Cart {
   #membershipManager;
   #productManager;
   #totalDiscountAmount;
+  #totalQuantity;
 
   constructor(productManager, promotionManager) {
     this.#items = [];
@@ -15,6 +16,7 @@ class Cart {
     this.#membershipManager = new MembershipManager();
     this.#productManager = productManager;
     this.#totalDiscountAmount = 0;
+    this.#totalQuantity = 0;
   }
 
   resetCart() {
@@ -54,31 +56,22 @@ class Cart {
         const remainingQuantity = quantity - totalPromotionalApplicable;
 
         if (actualBonusQuantity < maxBonusQuantity) {
-          // 프로모션 재고가 부족하여 일부 수량은 정가로 구매해야 함을 알림
           const confirmRegularPrice =
             await InputView.readRegularPriceConfirmation(
               name,
               remainingQuantity,
             );
           if (!confirmRegularPrice) {
-            console.log(`${name} 구매가 취소되었습니다.`);
-            return; // 사용자 거절 시 구매 취소
+            return;
           }
-          // 정가로 남은 수량을 구매하기로 결정한 경우
           purchaseQuantity = totalPromotionalApplicable + remainingQuantity;
           bonusQuantity = actualBonusQuantity;
           discountAmount = price * bonusQuantity;
         } else if (actualBonusQuantity >= maxBonusQuantity) {
           if (quantity % buy !== 0) {
-            // 고객이 프로모션 조건을 만족한 수량을 가져온 경우
-            console.log('조건을 충족하여 자동으로 증정 혜택을 적용');
             bonusQuantity = actualBonusQuantity;
             discountAmount = price * bonusQuantity;
           } else {
-            // 프로모션 조건보다 부족할 경우 추가 수량을 제안
-            console.log(
-              '프로모션 조건보다 부족한 수량으로 입력, 추가 수량 제안',
-            );
             const addMore = await InputView.readPromotionAddConfirmation(
               name,
               actualBonusQuantity,
@@ -91,6 +84,7 @@ class Cart {
           }
         }
       }
+      this.#totalQuantity += quantity;
     }
 
     // 최종 구매 수량은 실제 구매한 수량만 반영
@@ -167,6 +161,7 @@ class Cart {
       ...this.#calculateSummaryDetails(applyMembershipDiscount),
       itemsDetails: this.#getItemsDetails(), // adjustedQuantity가 반영되도록 수정
       promotionsDetails: this.#getPromotionsDetails(),
+      totalQuantity: this.#totalQuantity,
     };
   }
 
