@@ -64,11 +64,19 @@ class ProductManager {
 
       if (promotionDetails) {
         const { buy, get } = promotionDetails;
-        // 현재 재고에서 주어진 buy + get 규칙에 따라 최대 보너스 수량 계산
-        const maxApplicablePromotions = Math.floor(
-          promotionalProduct.quantity / (buy + get),
-        );
-        availablePromotionalStock = maxApplicablePromotions * get;
+
+        if (buy === 1 && get === 1) {
+          // 1+1 프로모션일 때, 재고 절반만 증정 가능
+          availablePromotionalStock = Math.floor(
+            promotionalProduct.quantity / 2,
+          );
+        } else {
+          // 일반 N+1 프로모션 처리
+          const maxApplicablePromotions = Math.floor(
+            promotionalProduct.quantity / (buy + get),
+          );
+          availablePromotionalStock = maxApplicablePromotions * get;
+        }
       }
     }
 

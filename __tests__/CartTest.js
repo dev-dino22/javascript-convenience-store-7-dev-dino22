@@ -40,28 +40,6 @@ describe('Cart 클래스 테스트', () => {
         }
         return null;
       }),
-      applyPromotion: jest.fn(
-        (promotionName, quantity, availablePromotionalStock) => {
-          const promotionDetails =
-            mockPromotionManager.getPromotionDetails(promotionName);
-          const currentDate = MissionUtils.DateTimes.now();
-          const promotionStartDate = new Date(promotionDetails.start_date);
-          const promotionEndDate = new Date(promotionDetails.end_date);
-
-          const isWithinPromotionPeriod =
-            currentDate >= promotionStartDate &&
-            currentDate <= promotionEndDate;
-
-          if (
-            promotionName === 'PROMO1' &&
-            quantity >= promotionDetails.buy &&
-            isWithinPromotionPeriod
-          ) {
-            return { adjustedQuantity: quantity, bonusQuantity: 1 };
-          }
-          return { adjustedQuantity: quantity, bonusQuantity: 0 };
-        },
-      ),
       isWithinPromotionPeriod: jest.fn((startDate, endDate) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -74,6 +52,7 @@ describe('Cart 클래스 테스트', () => {
 
     cart = new Cart(mockProductManager, mockPromotionManager);
     InputView.readPromotionAddConfirmation.mockResolvedValue(true);
+    InputView.readRegularPriceConfirmation.mockResolvedValue(true);
   });
 
   test('addItem() 메서드가 프로모션에 따라 상품을 올바르게 추가하고 할인을 반영하는지 확인', async () => {
@@ -99,7 +78,7 @@ describe('Cart 클래스 테스트', () => {
     expect(finalAmountWithoutMembership).toBe(3000);
   });
 
-  test('기간에 해당하지 않는 프로모션 적용 확인', async () => {
+  test('프로모션이 유효하지 않은 경우에 대한 처리 확인', async () => {
     mockNowDate('2024-01-01'); // 프로모션이 유효하지 않은 날짜 설정
     await cart.addItem('콜라', 2);
 

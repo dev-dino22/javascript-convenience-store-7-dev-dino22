@@ -46,19 +46,58 @@ class Cart {
 
       if (buy === 1 && get === 1) {
         // 1+1 프로모션 처리
-        const maxBonusQuantity = Math.floor(quantity / buy) * get;
+        const maxBonusQuantity = quantity; // 1+1에서 2개당 1개 증정
         const actualBonusQuantity = Math.min(
           maxBonusQuantity,
           availablePromotionalStock,
         );
-        console.log(maxBonusQuantity);
+        if (quantity % 2 === 0) {
+          if (actualBonusQuantity < maxBonusQuantity) {
+            // 증정 가능한 수량이 부족할 때 추가 구매 여부 확인
+            const remainingForPromo = quantity - actualBonusQuantity;
+            const confirmRegularPrice =
+              await InputView.readRegularPriceConfirmation(
+                name,
+                remainingForPromo,
+              );
 
-        if (actualBonusQuantity === maxBonusQuantity) {
-          // 프로모션 재고가 충분한 경우
-          if (quantity % 2 === 0) {
-            bonusQuantity = actualBonusQuantity / 2;
+            if (!confirmRegularPrice) {
+              purchaseQuantity -= remainingForPromo;
+            }
+
+            purchaseQuantity = quantity; // 전체 수량을 구매
+            bonusQuantity = actualBonusQuantity;
             discountAmount = price * bonusQuantity;
           } else {
+            bonusQuantity = actualBonusQuantity / 2;
+            discountAmount = price * bonusQuantity;
+          }
+        } else if (quantity % 2 !== 0) {
+          if (actualBonusQuantity < maxBonusQuantity) {
+            // 추가 증정 여부 물어보기
+            const addMore = await InputView.readPromotionAddConfirmation(
+              name,
+              actualBonusQuantity,
+            );
+
+            if (addMore) {
+              purchaseQuantity += get;
+              bonusQuantity = actualBonusQuantity;
+              discountAmount = price * bonusQuantity;
+            } else {
+              bonusQuantity = actualBonusQuantity;
+              discountAmount = price * bonusQuantity;
+              const remainingForPromo = quantity - actualBonusQuantity;
+              const confirmRegularPrice =
+                await InputView.readRegularPriceConfirmation(
+                  name,
+                  remainingForPromo,
+                );
+              if (!confirmRegularPrice) {
+                purchaseQuantity -= remainingForPromo;
+              }
+            }
+          } else if (quantity === 1) {
             const addMore = await InputView.readPromotionAddConfirmation(
               name,
               actualBonusQuantity,
@@ -66,24 +105,13 @@ class Cart {
             if (addMore) {
               purchaseQuantity += 1;
               bonusQuantity = actualBonusQuantity;
-            } else if (quantity === 1) {
-              bonusQuantity = 0;
+              discountAmount = price * bonusQuantity;
             }
+          } else {
+            // 충분한 증정 가능
+            bonusQuantity = actualBonusQuantity;
             discountAmount = price * bonusQuantity;
           }
-        } else {
-          // 프로모션 재고가 부족한 경우
-          const excessQuantity = quantity - availablePromotionalStock;
-          const confirmRegularPrice =
-            await InputView.readRegularPriceConfirmation(name, excessQuantity);
-
-          if (!confirmRegularPrice) {
-            purchaseQuantity -= excessQuantity;
-          } else {
-            purchaseQuantity = quantity;
-          }
-          bonusQuantity = actualBonusQuantity;
-          discountAmount = price * bonusQuantity;
         }
       } else if (quantity >= buy) {
         // 일반 프로모션 처리
