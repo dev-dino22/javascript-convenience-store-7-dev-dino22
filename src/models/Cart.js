@@ -1,6 +1,7 @@
 import MembershipManager from './MembershipManager.js';
 import InputView from '../views/InputView.js';
 import { MissionUtils } from '@woowacourse/mission-utils';
+import { retryOnError } from '../utils/retryOnError.js';
 
 class Cart {
   #items;
@@ -58,9 +59,8 @@ class Cart {
             bonusQuantity = actualBonusQuantity / 2;
             discountAmount = price * bonusQuantity;
           } else {
-            const addMore = await InputView.readPromotionAddConfirmation(
-              name,
-              actualBonusQuantity,
+            const addMore = await retryOnError(() =>
+              InputView.readPromotionAddConfirmation(name, actualBonusQuantity),
             );
             if (addMore) {
               purchaseQuantity += 1;
@@ -73,8 +73,9 @@ class Cart {
         } else {
           // 프로모션 재고가 부족한 경우
           const excessQuantity = quantity - availablePromotionalStock;
-          const confirmRegularPrice =
-            await InputView.readRegularPriceConfirmation(name, excessQuantity);
+          const confirmRegularPrice = await retryOnError(() =>
+            InputView.readRegularPriceConfirmation(name, excessQuantity),
+          );
 
           if (!confirmRegularPrice) {
             purchaseQuantity -= excessQuantity;
@@ -98,11 +99,9 @@ class Cart {
         const remainingQuantity = quantity - totalPromotionalApplicable;
 
         if (actualBonusQuantity < maxBonusQuantity) {
-          const confirmRegularPrice =
-            await InputView.readRegularPriceConfirmation(
-              name,
-              remainingQuantity,
-            );
+          const confirmRegularPrice = await retryOnError(() =>
+            InputView.readRegularPriceConfirmation(name, remainingQuantity),
+          );
           if (!confirmRegularPrice) {
             purchaseQuantity -= remainingQuantity;
           } else {
@@ -115,9 +114,8 @@ class Cart {
             bonusQuantity = actualBonusQuantity;
             discountAmount = price * bonusQuantity;
           } else {
-            const addMore = await InputView.readPromotionAddConfirmation(
-              name,
-              actualBonusQuantity,
+            const addMore = await retryOnError(() =>
+              InputView.readPromotionAddConfirmation(name, actualBonusQuantity),
             );
             if (addMore) {
               purchaseQuantity += get;

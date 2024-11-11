@@ -3,6 +3,7 @@ import PromotionManager from '../models/PromotionManager.js';
 import Cart from '../models/Cart.js';
 import InputView from '../views/InputView.js';
 import OutputView from '../views/OutputView.js';
+import { retryOnError } from '../utils/retryOnError.js';
 
 class MainController {
   #productManager;
@@ -28,7 +29,7 @@ class MainController {
         await this.addCart();
 
         // Step 2: 멤버십 할인 적용 여부 확인 및 영수증 출력
-        const isMembership = await this.retryOnError(
+        const isMembership = await retryOnError(
           InputView.readMembershipDiscount,
         );
         const receiptData = this.#cart.generateReceiptData(isMembership);
@@ -42,9 +43,7 @@ class MainController {
       }
 
       // 추가 구매 여부 확인
-      continueShopping = await this.retryOnError(
-        InputView.readAdditionalQuantity,
-      );
+      continueShopping = await retryOnError(InputView.readAdditionalQuantity);
     }
   }
 
@@ -54,21 +53,11 @@ class MainController {
   }
 
   async addCart() {
-    const itemsToBuy = await this.retryOnError(InputView.readItem);
+    const itemsToBuy = await retryOnError(InputView.readItem);
     this.#productManager.checkProductStock(itemsToBuy);
 
     for (const { name, quantity } of itemsToBuy) {
       await this.#cart.addItem(name, quantity);
-    }
-  }
-
-  async retryOnError(inputFunction) {
-    while (true) {
-      try {
-        return await inputFunction();
-      } catch (error) {
-        OutputView.printError(error.message);
-      }
     }
   }
 }
