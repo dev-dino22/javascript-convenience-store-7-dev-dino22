@@ -42,6 +42,7 @@ class Cart {
       const { buy, get } = promotionDetails;
       if (quantity >= buy) {
         const maxBonusQuantity = Math.floor(quantity / buy) * get;
+
         const actualBonusQuantity = Math.min(
           maxBonusQuantity,
           availablePromotionalStock,
@@ -67,15 +68,26 @@ class Cart {
           purchaseQuantity = totalPromotionalApplicable + remainingQuantity;
           bonusQuantity = actualBonusQuantity;
           discountAmount = price * bonusQuantity;
-        } else if (actualBonusQuantity === maxBonusQuantity) {
-          // 프로모션 재고가 충분할 때 사용자에게 증정 수량을 추가할지 묻기
-          const addMore = await InputView.readPromotionAddConfirmation(
-            name,
-            actualBonusQuantity,
-          );
-          if (addMore) {
+        } else if (actualBonusQuantity >= maxBonusQuantity) {
+          if (quantity % buy !== 0) {
+            // 고객이 프로모션 조건을 만족한 수량을 가져온 경우
+            console.log('조건을 충족하여 자동으로 증정 혜택을 적용');
             bonusQuantity = actualBonusQuantity;
             discountAmount = price * bonusQuantity;
+          } else {
+            // 프로모션 조건보다 부족할 경우 추가 수량을 제안
+            console.log(
+              '프로모션 조건보다 부족한 수량으로 입력, 추가 수량 제안',
+            );
+            const addMore = await InputView.readPromotionAddConfirmation(
+              name,
+              actualBonusQuantity,
+            );
+            if (addMore) {
+              purchaseQuantity += get;
+              bonusQuantity = actualBonusQuantity;
+              discountAmount = price * bonusQuantity;
+            }
           }
         }
       }
