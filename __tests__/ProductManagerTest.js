@@ -53,7 +53,6 @@ describe('ProductManager 단위 테스트', () => {
       ).not.toThrow();
     }
 
-    // 남은 재고보다 더 많은 수량 차감 시도
     expect(() =>
       productManager.deductStock(productName, quantityToDeduct),
     ).toThrow('[ERROR] 재고가 부족합니다.');
@@ -61,7 +60,7 @@ describe('ProductManager 단위 테스트', () => {
 
   test('상품 정보를 문자열로 가공하여 반환하는지 확인', () => {
     const formattedInfo = productManager.formatProductsInfo();
-    expect(formattedInfo).toContain('- 물'); // 예시: 특정 상품명이 포함된 정보인지 확인
-    expect(formattedInfo).toMatch(/\d+원 \d+개/); // 가격 및 개수가 포함된 형식 확인
+    expect(formattedInfo).toContain('- 물');
+    expect(formattedInfo).toMatch(/\d+원 \d+개/);
   });
 });

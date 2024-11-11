@@ -2,7 +2,7 @@ import Cart from '../src/models/Cart.js';
 import InputView from '../src/views/InputView.js';
 import { MissionUtils } from '@woowacourse/mission-utils';
 
-jest.mock('../src/views/InputView.js'); // InputView 모듈 모킹
+jest.mock('../src/views/InputView.js');
 
 const mockNowDate = (date) => {
   jest.spyOn(MissionUtils.DateTimes, 'now').mockReturnValue(new Date(date));
@@ -56,7 +56,7 @@ describe('Cart 클래스 테스트', () => {
   });
 
   test('addItem() 메서드가 프로모션에 따라 상품을 올바르게 추가하고 할인을 반영하는지 확인', async () => {
-    mockNowDate('2024-06-01'); // 특정 날짜 설정 (프로모션이 유효한 날짜로 가정)
+    mockNowDate('2024-06-01');
     await cart.addItem('콜라', 2);
     const receiptData = cart.generateReceiptData();
 
@@ -70,7 +70,7 @@ describe('Cart 클래스 테스트', () => {
   });
 
   test('calculateFinalAmount()가 멤버십 할인 없이 프로모션 할인 금액을 올바르게 반영하는지 확인', async () => {
-    mockNowDate('2024-06-01'); // 프로모션이 유효한 날짜 설정
+    mockNowDate('2024-06-01');
     await cart.addItem('콜라', 2);
     await cart.addItem('사이다', 1);
 
@@ -91,7 +91,7 @@ describe('Cart 클래스 테스트', () => {
   });
 
   test('calculateFinalAmount()가 멤버십 할인이 적용된 최종 결제 금액을 올바르게 계산하는지 확인', async () => {
-    mockNowDate('2024-06-01'); // 특정 날짜 설정 (프로모션이 유효한 날짜로 가정)
+    mockNowDate('2024-06-01');
     await cart.addItem('콜라', 2);
     await cart.addItem('사이다', 3);
 

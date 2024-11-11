@@ -70,7 +70,6 @@ const OutputView = {
   }) {
     Console.print(MESSAGES.RECEIPT.DIVIDER);
 
-    // Adjust alignment and padding for better layout
     const summaryTexts = [
       `${'총구매액'.padEnd(16)}${String(totalQuantity).padStart(5)}${this.formatPrice(totalAmountWithoutDiscounts).padStart(12)}`,
       `${'행사할인'.padEnd(16)}${this.formatDiscountPrice(totalDiscountAmount).padStart(17)}`,

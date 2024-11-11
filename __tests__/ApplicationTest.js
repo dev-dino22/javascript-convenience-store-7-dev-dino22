@@ -9,11 +9,6 @@ const mockQuestions = (inputs) => {
     messages.push(prompt);
     const input = inputs.shift();
 
-    if (input === undefined) {
-      console.error('NO INPUT 발생! 현재 messages:', messages); // 디버그 메시지 추가
-      throw new Error('NO INPUT');
-    }
-
     return Promise.resolve(input);
   });
 

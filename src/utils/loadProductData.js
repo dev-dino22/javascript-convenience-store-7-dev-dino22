@@ -30,12 +30,10 @@ export const loadProductData = () => {
   const lines = readFileContent(PRODUCTS_FILE_PATH);
   const parsedProducts = lines.map(parseProductLine);
 
-  // 모든 제품명 중복 없이 저장
   const allProductNames = new Set(
     parsedProducts.map((product) => product.name),
   );
 
-  // 모든 제품 리스트를 완성
   const completedProducts = [];
 
   allProductNames.forEach((productName) => {
@@ -46,10 +44,8 @@ export const loadProductData = () => {
       (product) => product.name === productName && product.promotion === null,
     );
 
-    // 순서대로 삽입
     promotionalItems.forEach((promoItem) => completedProducts.push(promoItem));
 
-    // 일반 재고가 없을 경우 "재고 없음" 항목 추가
     if (!regularItem) {
       const firstPromoPrice = promotionalItems[0].price;
       completedProducts.push({

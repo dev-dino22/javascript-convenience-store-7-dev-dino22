@@ -121,7 +121,6 @@ describe('PromotionManager 단위 테스트', () => {
     const endDate = '2024-12-31';
     const currentDate = MissionUtils.DateTimes.now();
 
-    // Set a specific date within the promotion period
     jest.useFakeTimers().setSystemTime(new Date('2024-06-15'));
 
     const result = promotionManager.isWithinPromotionPeriod(

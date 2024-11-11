@@ -4,7 +4,6 @@ describe('loadPromotionData() 함수 테스트', () => {
   test('loadPromotionData가 객체 배열을 반환하는지 확인', async () => {
     const promotions = loadPromotionData();
 
-    // 배열인지 확인
     expect(Array.isArray(promotions)).toBe(true);
 
     // 배열 내부 요소가 객체인지 확인
