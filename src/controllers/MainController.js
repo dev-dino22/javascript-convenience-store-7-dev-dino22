@@ -23,16 +23,13 @@ class MainController {
       this.#cart.resetCart();
       OutputView.printHello();
       await this.displayProducts();
-
       try {
         await this.addCart();
-
         const isMembership = await retryOnError(
           InputView.readMembershipDiscount,
         );
         const receiptData = this.#cart.generateReceiptData(isMembership);
         OutputView.printReceipt(receiptData);
-
         this.#cart.deductAllItemsStock();
       } catch (error) {
         OutputView.printError(error.message);

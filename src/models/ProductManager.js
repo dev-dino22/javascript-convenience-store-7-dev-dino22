@@ -138,12 +138,11 @@ class ProductManager {
     }
   }
 
-  // 상품 정보를 문자열로 가공하여 반환
   formatProductsInfo() {
     const productInfoLines = this.#products.map((product) => {
       const quantityText = this.formatQuantity(product.quantity);
       const promotionText = this.formatPromotion(product.promotion);
-      const formattedPrice = this.formatPrice(product.price); // 가격 포맷 적용
+      const formattedPrice = this.formatPrice(product.price);
       return `- ${product.name} ${formattedPrice}원 ${quantityText} ${promotionText}`.trim();
     });
 
