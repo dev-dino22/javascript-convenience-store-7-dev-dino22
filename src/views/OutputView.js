@@ -6,6 +6,10 @@ const OutputView = {
     return new Intl.NumberFormat('ko-KR').format(price);
   },
 
+  formatDiscountPrice(price) {
+    return `-${new Intl.NumberFormat('ko-KR').format(price)}`;
+  },
+
   printHello() {
     Console.print(MESSAGES.INFO.LINE_BREAK);
     Console.print(MESSAGES.INFO.HELLO);
@@ -31,14 +35,14 @@ const OutputView = {
 
   printHeader() {
     Console.print(MESSAGES.RECEIPT.TITLE);
-    Console.print(MESSAGES.RECEIPT.ITEM_HEADER);
+    Console.print(
+      `${'상품명'.padEnd(16)}${'수량'.padStart(6)}${'금액'.padStart(8)}`,
+    );
   },
 
   printItems(itemsDetails) {
     itemsDetails.forEach((item) => {
-      const itemText = MESSAGES.RECEIPT.ITEM_ROW.replace('{name}', item.name)
-        .replace('{quantity}', item.quantity)
-        .replace('{total}', this.formatPrice(item.total));
+      const itemText = `${item.name.padEnd(16)}${String(item.quantity).padStart(6)}${this.formatPrice(item.total).padStart(12)}`;
       Console.print(itemText);
     });
   },
@@ -47,10 +51,7 @@ const OutputView = {
     Console.print(MESSAGES.RECEIPT.PROMOTION_HEADER);
     if (promotionsDetails.length > 0) {
       promotionsDetails.forEach((item) => {
-        const promotionText = MESSAGES.RECEIPT.PROMOTION_ROW.replace(
-          '{name}',
-          item.name,
-        ).replace('{quantity}', item.quantity);
+        const promotionText = `${item.name.padEnd(16)}${String(item.quantity).padStart(6)}`;
         Console.print(promotionText);
       });
     } else {
@@ -66,24 +67,15 @@ const OutputView = {
     totalQuantity,
   }) {
     Console.print(MESSAGES.RECEIPT.DIVIDER);
+
+    // Adjust alignment and padding for better layout
     const summaryTexts = [
-      MESSAGES.RECEIPT.TOTAL_AMOUNT.replace(
-        '{totalQuantity}',
-        totalQuantity,
-      ).replace('{totalAmount}', this.formatPrice(totalAmountWithoutDiscounts)),
-      MESSAGES.RECEIPT.PROMOTION_DISCOUNT.replace(
-        '{discountAmount}',
-        this.formatPrice(totalDiscountAmount),
-      ),
-      MESSAGES.RECEIPT.MEMBERSHIP_DISCOUNT.replace(
-        '{membershipDiscount}',
-        this.formatPrice(membershipDiscount),
-      ),
-      MESSAGES.RECEIPT.FINAL_AMOUNT.replace(
-        '{finalAmount}',
-        this.formatPrice(finalAmount),
-      ),
+      `${'총구매액'.padEnd(16)}${String(totalQuantity).padStart(5)}${this.formatPrice(totalAmountWithoutDiscounts).padStart(12)}`,
+      `${'행사할인'.padEnd(16)}${this.formatDiscountPrice(totalDiscountAmount).padStart(17)}`,
+      `${'멤버십할인'.padEnd(16)}${this.formatDiscountPrice(membershipDiscount).padStart(16)}`,
+      `${'내실돈'.padEnd(16)}${this.formatPrice(finalAmount).padStart(18)}`,
     ];
+
     summaryTexts.forEach((text) => Console.print(text));
   },
 };
